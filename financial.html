@@ -14,7 +14,9 @@
     <title>Coquitlam Financial Analysis</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f8f9fa; margin: 0; padding: 15px; }
+        body { font-family: sans-serif; background: #f8f9fa; margin: 0; padding: 15px; 
+            position: relative; /* CHANGED HERE: Needed so absolute positioning layout works correctly */
+            }
         .dashboard-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1450px; margin: auto; }
         .chart-box { 
             flex: 1 1 650px; 
@@ -31,9 +33,33 @@
         h1, h2 { color: #2c3e50; text-align: center; }
         h2 { font-size: 1rem; margin-bottom: 12px; }
         .footnote { font-size: 0.75rem; color: #7f8c8d; text-align: center; margin-top: 10px; }
+        /* ADDED HERE: Pins the nav container to the absolute top left of the viewport */
+        .top-nav {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 100; /* Ensures it stays stacked on top of everything else */
+        }
+        /* ADDED HERE: These 2 Keeps styling clean and matches your original size preferences */
+        .back-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        .back-link:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        
     </style>
 </head>
 <body>
+    <nav class="top-nav">
+    <a href="index.html" class="back-link">&larr; Back to Home</a>
+    </nav>
     <h1>City of Coquitlam: Selected Financial and Operating Information</h1>
     <div class="dashboard-container">
         <!-- Row 1 -->
