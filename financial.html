@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coquitlam Financial Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f8f9fa; margin: 0; padding: 15px; }
+        .dashboard-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1450px; margin: auto; }
+        .chart-box { 
+            flex: 1 1 650px; 
+            min-width: 350px; 
+            max-width: 700px;
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
+            box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        canvas { width: 100% !important; max-height: 400px; }
+        h1, h2 { color: #2c3e50; text-align: center; }
+        h2 { font-size: 1rem; margin-bottom: 12px; }
+        .footnote { font-size: 0.75rem; color: #7f8c8d; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>City of Coquitlam: Selected Financial and Operating Information</h1>
+    <div class="dashboard-container">
+        <!-- Row 1 -->
+        <div class="chart-box"><h2>Income Statement Summary</h2><canvas id="opTrendChart"></canvas></div>
+        <div class="chart-box">
+            <h2>Taxation and User Rates Revenue per Estimated Resident</h2>
+            <canvas id="taxPerResChart"></canvas>
+            <p class="footnote">*In 2022, the City moved the Sewer Parcel Tax out of Taxation revenue and into User Rates revenue.</p>
+        </div>
+        <!-- Row 2 -->
+        <div class="chart-box"><h2>Balance Sheet Summary</h2><canvas id="balanceSheetChart"></canvas></div>
+        <div class="chart-box"><h2>Average Rate Comparisons (%)</h2><canvas id="yieldChart"></canvas></div>
+        <!-- Row 3 -->
+        <div class="chart-box"><h2>Taxation and Usage Fee Revenue Concentration of Top 25 City Taxpayers</h2><canvas id="taxConcentrationChart"></canvas></div>
+        <div class="chart-box"><h2>Special Items of Interest</h2><canvas id="specialItemsChart"></canvas></div>
+    </div> <!-- This is the end of the dashboard-container -->
+
+    <!-- ADD THE LEFT-ALIGNED FOOTNOTE HERE -->
+    <p class="footnote" style="margin-top: 30px; border-top: 1px solid #ecf0f1; padding-top: 15px; text-align: left;">
+        Sources: City of Coquitlam, Government of BC, Bank of Canada
+    </p>
+
+    <script src="app.js"></script>
+</body>
+</html>
