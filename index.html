@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5SKZJV43H"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-W5SKZJV43H');
+    </script>
+    <title>Coquitlam Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* Full page background settings */
+            background-image: url('lafargelake_canada.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            
+            /* Flexbox setup (Typography and layout) */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-wrap: wrap;           /* CHANGED HERE: Allows the boxes to drop below the header */
+            align-content: center;     /* CHANGED HERE: Keeps everything vertically balanced */
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 40px 20px;        /* CHANGED HERE: Gives breathing room on tiny mobile screens */
+        }
+
+        /* CHANGED HERE: Added header container styles to claim the full top row */
+        .header-container {
+            width: 100%;               
+            text-align: center;
+            margin-bottom: 30px;       
+        }
+
+        /* CHANGED HERE: Added header font styling with a shadow to stay legible over the photo */
+        .header-container h1 {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: 700;
+        }
+
+        /* CHANGED HERE: Added styling for the new subtitle text */
+        .header-container p {
+            font-size: 1.3rem;
+            margin-top: 10px;          /* Adds space between the title and subtitle */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            color: #000000;            /* CHANGED HERE: Changed from white/opacity to a charcoal grey */
+            font-weight: 500;          /* CHANGED HERE: Slightly bumped weight to keep it crisp */
+            opacity: 0.9;              /* Makes it look slightly softer than the main header */
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .box {
+            background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent black */
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .box:hover {
+            background-color: rgba(128, 128, 128, 0.85); /* Changes opacity when hovering, dont use white background rgba(255, 255, 255, 0.1) on white text */
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+        }
+
+        .box a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Responsive adjustments for smaller screens and cellphones*/
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr; /* Stacks the boxes in one column */
+            }
+            /* CHANGED HERE: Dynamically shrinks the title size slightly on phones */
+            .header-container h1 {
+                font-size: 1.8rem;
+            }
+            /* CHANGED HERE: Added rules to scale down the subtitle text on small mobile screens */
+            .header-container p {
+                font-size: 1.1rem;
+                color: #212121;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CHANGED HERE: Replaced the extra duplicate container with your actual header -->
+    <div class="header-container">
+        <h1>Coquitlam City Data Visualizations</h1>
+        <p>You can view selected city data visualizations and financial information here. Click to view any of the dashboards below</p>
+    </div>
+
+    <div class="container">
+        <!-- Box 1 -->
+        <div class="box">
+            <a href="financial.html">City Financial Analysis</a>
+        </div>
+        
+        <!-- Box 2 -->
+        <div class="box">
+            <a href="map.html">New Building Development Geo-map</a>
+        </div>
+        
+        <!-- Box 3 -->
+        <!-- FOR FUTURE 
+        <div class="box">
+            <a href="page3.html">Link 3</a>
+        </div>
+        -->
+        <!-- Box 4 -->
+        <!-- FOR FUTURE 
+        <div class="box">
+            <a href="page4.html">Link 4</a>
+        </div>
+        -->
+    </div>
+
+</body>
+</html>
