@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5SKZJV43H"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-W5SKZJV43H');
+    </script>
+  
+    <title>Coquitlam Development Map</title>
+    <!-- Load Apache ECharts from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #map-container {
+            width: 100%;
+            height: 100%;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #666;
+        }
+        /* Top Left: Home Link Overlay */
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;           /* Ensures it stays stacked directly on top of the map layer */
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 16px;
+            background-color: #ffffff;
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .back-home:hover {
+            background-color: #1890ff;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+        }
+        
+        /* Top Left: Reset View Button Overlay */
+        .reset-btn {
+            position: absolute; 
+            top: 70px; 
+            left: 20px; 
+            z-index: 10; 
+            padding: 6px 12px; 
+            background: white; 
+            border: 1px solid #d9d9d9; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            cursor: pointer; 
+            color: #555; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            font-weight: bold; 
+            transition: all 0.2s;
+        }
+        .reset-btn:hover {
+            background: #f5f5f5;
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+
+        /* Optional Panels to turn off/on by setting display: none; instead of display: block; (if u just comment out entire line then will still show the box) */
+         
+        /* Top Right: Neighbourhood Breakdown Panel */
+        .neighbourhood-panel {
+            position: absolute;
+            top: 90px;
+            right: 20px;
+            z-index: 10;
+            width: 260px;
+            max-height: 350px;
+            overflow-y: auto;      /* Adds a scrollbar if the list is long */
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 14px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 13px;
+            color: #333;
+              display: none;    /* COMMENT THIS OUT TO HIDE THIS AREA */ /* display: block to show panel otherwise display: none to hide */
+        }
+        .neighbourhood-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 15px;
+            color: #1890ff;
+            border-bottom: 1px solid #e8e8e8;
+            padding-bottom: 6px;
+        }
+        .neighbourhood-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+        .neighbourhood-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Bottom Left: City-wide Total Panel */
+        .city-total-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 13px;
+            color: #333;
+              display: none;    /* COMMENT THIS OUT TO HIDE THIS AREA */ /* display: block to show panel otherwise display: none to hide */
+        }
+        .city-total-panel h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .city-total-number {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff4d4f;        /* Matches your core development color accents */
+        }
+
+        /* Bottom Right: Data Attribution Footer */
+        .map-footer {
+            position: absolute;
+            bottom: 12px;
+            right: 15px;
+            z-index: 10;           /* Keeps it above the ECharts canvas background layer */
+            font-size: 11px;
+            color: #8c8c8c;      /* Faint grey text color */
+            text-align: right;
+            line-height: 1.5;
+            pointer-events: none;  /* Allows canvas clicks to bleed through empty space */
+            /* display: block; */ /* COMMENT THIS OUT TO HIDE THIS AREA */  /* display: block to show panel otherwise display: none to hide */
+        }
+        .map-footer a {
+            color: #8c8c8c;
+            text-decoration: underline;
+            pointer-events: auto;       /* Re-enables clicking explicitly on the link text */ 
+        }
+        .map-footer a:hover {
+            color: #1890ff;
+        }
+
+        /* Mobile responsiveness adjustments */
+        @media (max-width: 768px) {
+            .neighbourhood-panel {
+                display: none !important; /* Automatically hide breakdown on small mobile screens */
+            }
+            .city-total-panel {
+                bottom: 50px; /* Push up slightly to avoid overlapping map zoom controls */
+                left: 10px;
+                padding: 8px 12px;
+            }
+            .city-total-number {
+                font-size: 18px;
+            }
+        }
+
+        /* Adjust layouts for tiny screen constraints */
+        @media (max-width: 600px) {
+            .back-home {
+                top: 10px;
+                left: 10px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .map-footer {
+                bottom: 8px;
+                right: 8px;
+                font-size: 10px;
+            }
+
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Nav and Control Elements -->
+    <!-- Back to home floating nav item followed by reset zoom button -->     
+    <a href="index.html" class="back-home">← Back to Home</a>
+    <button id="reset-zoom-btn" class="reset-btn">⟲ Reset Zoom</button>
+
+    <!-- Discreet Data Source Data Attribution Footer -->
+    <div id="attribution-footer" class="map-footer">
+        Source: <a href="https://coquitlam.ca" target="_blank">City of Coquitlam</a><br>
+        Data as of June 2026
+    </div>
+
+    <!-- Main Map Area -->   
+    <div id="loading">Loading Coquitlam Map Data...</div>
+    <div id="map-container"></div>
+
+    <!-- Interactive Info Area Panels -->
+    <div id="neighbourhood-breakdown" class="neighbourhood-panel"></div>
+    <div id="city-wide-total" class="city-total-panel"></div>
+
+    <script>
+        // 1. Initialize ECharts instance
+        const chartDom = document.getElementById('map-container');
+        const myChart = echarts.init(chartDom);
+        
+        const NEIGHBOURHOOD_GEOJSON_URL = 'coquitlam_neighbourhoods.geojson'; 
+        const BUILDINGS_GEOJSON_URL = 'new_buildings.geojson';
+
+        // Custom hex colors matching professional UI frameworks. (DOES AFFECT LEGEND TEXT SHOWING, SO NEEDS TO MATCH convertBuildingData function items to display dots)
+        const STATUS_COLORS = {
+            "Approved": "#52c41a",             // Clean Green
+            "Active Application": "#1890ff",    // Clear Blue
+            "Pre-Application": "#faad14",       // Amber/Yellow
+            "Conditional Approval": "#722ed1",  // Deep Purple
+            "Declined": "#f5222d",              // Soft Red
+            "Other": "#8c8c8c"                  // Neutral Grey
+        };
+
+
+        // --- FEATURE ACCENT TOGGLES: CHANGE TRUE TO FALSE TO HIDE INSTANTLY ---
+        const SHOW_HOVER_COUNT = true; // Controls the count line in hover popups. Set to false if you ever want to hide it from hover-box if math stops working
+        const SHOW_MAP_LEGEND  = true; // Controls the main interactive color legend panel. Set to false if you ever want to hide it if parsing stops working
+        // ----------------------------------------------------------------------
+
+        // 2. Geometry centroid parsing using the Shoelace area-weighting formula
+        function getCentroid(geometry) {
+            if (!geometry) return null;
+
+            if (geometry.type === 'Point') {
+                return geometry.coordinates;
+            }
+            
+            function getRingCentroid(ring) {
+                if (!ring || ring.length === 0) return null;
+                let area = 0;
+                let cx = 0;
+                let cy = 0;
+                const len = ring.length;
+
+                for (let i = 0; i < len - 1; i++) {
+                    const p1 = ring[i];
+                    const p2 = ring[i + 1];
+                    const factor = (p1[0] * p2[1]) - (p2[0] * p1[1]);
+                    
+                    area += factor;
+                    cx += (p1[0] + p2[0]) * factor;
+                    cy += (p1[1] + p2[1]) * factor;
+                }
+
+                area = area * 0.5;
+                if (area === 0) return [ring[0][0], ring[0][1], 0]; 
+
+                cx = cx / (6 * area);
+                cy = cy / (6 * area);
+
+                return [cx, cy, Math.abs(area)];
+            }
+
+            if (geometry.type === 'Polygon') {
+                const result = getRingCentroid(geometry.coordinates[0]);
+                if (!result) return null;
+                return [result[0], result[1]];
+            } 
+            
+            if (geometry.type === 'MultiPolygon') {
+                let totalCx = 0, totalCy = 0, totalArea = 0;
+                
+                geometry.coordinates.forEach(multiPolygon => {
+                    if (multiPolygon && multiPolygon[0]) {
+                        const result = getRingCentroid(multiPolygon[0]);
+                        if (!result) return;
+                        const [cx, cy, area] = result;
+                        totalCx += cx * area;
+                        totalCy += cy * area;
+                        totalArea += area;
+                    }
+                });
+                
+                if (totalArea === 0) return null;
+                return [totalCx / totalArea, totalCy / totalArea];
+            }
+
+            return null;
+        }
+
+        // Helper function using Ray-Casting algorithm to check if a point is inside a polygon ring
+        // Corrected Ray-Casting algorithm to accurately target array point indices
+        function isPointInPolygon(point, ring) {
+            if (!ring || ring.length === 0) return false;
+            const x = point[0], y = point[1]; // Fixed: Explicitly target longitude/latitude indices
+            let inside = false;
+            
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const xi = ring[i][0], yi = ring[i][1]; // Fixed: Reference point sub-arrays
+                const xj = ring[j][0], yj = ring[j][1];
+                
+                const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+
+        // 3. Helper function to distribute properties safely into structured mapping buckets
+        function convertBuildingData(buildingsGeoJson) {
+            const grouped = {
+                "Approved": [],
+                "Active Application": [],
+                "Pre-Application": [],
+                "Conditional Approval": [],
+                "Declined": [],
+                "Other": []
+            };
+
+            if (!buildingsGeoJson || !buildingsGeoJson.features) return grouped;
+
+            buildingsGeoJson.features.forEach(feature => {
+                const centerPoint = getCentroid(feature.geometry);
+                if (!centerPoint) return; 
+
+                const props = feature.properties || {};
+                let status = props.PROJECT_STATUS || 'Other';
+
+                if (!grouped.hasOwnProperty(status)) {
+                    status = 'Other';
+                }
+
+                grouped[status].push({
+                    value: centerPoint, 
+                    name: props.ADDRESS || 'No Address Listed',
+                    properties: props 
+                });
+            });
+
+            return grouped;
+        }
+
+        // 4. Load both GeoJSON files asynchronously
+        async function initMap() {
+            try {
+                const [neighbourhoodRes, buildingsRes] = await Promise.all([
+                    fetch(NEIGHBOURHOOD_GEOJSON_URL),
+                    fetch(BUILDINGS_GEOJSON_URL)
+                ]);
+
+                if (!neighbourhoodRes.ok || !buildingsRes.ok) {
+                    throw new Error("Could not load one or both GeoJSON files. Check your file paths!");
+                }
+
+                const neighbourhoodData = await neighbourhoodRes.json();
+                const buildingsData = await buildingsRes.json();
+
+                // Hide loading text
+                document.getElementById('loading').style.display = 'none';
+
+                // Inject lowercase 'name' property into GeoJSON features for ECharts mapping
+                neighbourhoodData.features.forEach(f => {
+                    if (f.properties) {
+                        f.properties.name = f.properties.NAMES || 'Unknown Region';
+                    }
+                });
+
+                // Register the neighbourhood boundaries map base
+                echarts.registerMap('coquitlam_base', neighbourhoodData);
+
+                // Process building points smoothly into grouped status lists
+                const buildingGroups = convertBuildingData(buildingsData);
+
+                
+                // Base calculation dictionary used as a fallback threshold profile
+                const neighbourhoodCounts = {};
+                neighbourhoodData.features.forEach(f => {
+                    neighbourhoodCounts[f.properties.NAMES || 'Unknown Region'] = 0;
+                });
+
+                // 5. Configure ECharts options
+                const option = {
+                    backgroundColor: '#f7f9fa',
+                    title: {
+                        text: 'Coquitlam Building Development Projects by Neighbourhood',
+                        left: 'center',
+                        top: '20',
+                        textStyle: { color: '#333', fontSize: 20 }
+                    },
+                    // The clickable toggle legend panel with dynamic item counters
+                    legend: {
+                        show: SHOW_MAP_LEGEND, 
+                        orient: 'vertical',
+                        left: '20',
+                        top: '115',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        padding: 12,
+                        borderRadius: 6,
+                        shadowBlur: 6,
+                        shadowColor: 'rgba(0, 0, 0, 0.1)',
+                        data: Object.keys(STATUS_COLORS), 
+                        textStyle: { color: '#555', fontSize: 13, fontWeight: 'bold' },
+                        formatter: function (name) {
+                            const count = buildingGroups[name] ? buildingGroups[name].length : 0;
+                            return `${name} (${count})`;
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        enterable: true, 
+                        formatter: function (params) {
+                            if (params.seriesType === 'scatter' && params.data) {
+                                const props = params.data.properties || {};
+                                const projectNum = props.PROJECT_NUMBER || 'N/A';
+                                const status     = props.PROJECT_STATUS || 'N/A';
+                                const applicant  = props.APPLICANT      || 'N/A';
+                                const subDate    = props.SUBMISSION_DATE ? new Date(props.SUBMISSION_DATE).toLocaleDateString() : 'N/A';
+                                
+                                return `
+                                    <div style="font-size:14px; padding:3px;">
+                                        <strong style="font-size:16px; color:#1890ff; display:block; margin-bottom:8px;">
+                                            ${params.name}
+                                        </strong>
+                                        <table style="width:100%; border-collapse:collapse; font-size:13px; color:#333;">
+                                            <tr><td style="padding:3px 10px 3px 0; font-weight:bold; color:#666;">Project #:</td><td>${projectNum}</td></tr>
+                                            <tr><td style="padding:3px 10px 3px 0; font-weight:bold; color:#666;">Status:</td><td><span style="background:#e6f7ff; color:#1890ff; padding:2px 6px; border-radius:4px; font-size:11px;">${status}</span></td></tr>
+                                            <tr><td style="padding:3px 10px 3px 0; font-weight:bold; color:#666;">Applicant:</td><td>${applicant}</td></tr>
+                                            <tr><td style="padding:3px 10px 3px 0; font-weight:bold; color:#666;">Submitted:</td><td>${subDate}</td></tr>
+                                        </table>
+                                    </div>
+                                `;
+                            }
+
+                            const neighbourhoodProps = params.data ? neighbourhoodData.features.find(f => f.properties.NAMES === params.name)?.properties : null;
+                            if (neighbourhoodProps) {
+                                const nName = neighbourhoodProps.NAMES;
+                                const pCount = window.currentActiveCounts && window.currentActiveCounts[nName] !== undefined ? window.currentActiveCounts[nName] : 0;
+                                const countRow = SHOW_HOVER_COUNT ? `<br/><strong>Total Projects:</strong> ${pCount}` : '';
+
+                                return `<strong>Neighbourhood:</strong> ${nName}<br/>
+                                        <strong>GIS ID:</strong> ${neighbourhoodProps.GIS_ID || 'N/A'}${countRow}`;
+                            }
+                            
+                            return `Neighbourhood: ${params.name}`;
+                        }
+                    },
+
+
+                    geo: {
+                        map: 'coquitlam_base',
+                        roam: true, 
+                        label: {
+                            show: true,            
+                            color: '#444',         
+                            fontSize: 10
+                        },
+                        itemStyle: {
+                            areaColor: '#eef1f6',
+                            borderColor: '#b0c4de',
+                            borderWidth: 1.5
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                areaColor: '#dbe4f0'
+                            }
+                        }
+                    },
+
+                    series: [
+                        {
+                            name: 'Neighbourhoods',
+                            type: 'map',
+                            geoIndex: 0,  
+                            data: neighbourhoodData.features.map(f => ({
+                                name: f.properties.NAMES 
+                            }))
+                        },
+
+                        ...Object.entries(STATUS_COLORS).map(([statusName, statusColor]) => {
+                            return {
+                                name: statusName,
+                                type: 'scatter',
+                                coordinateSystem: 'geo', 
+                                data: buildingGroups[statusName] || [],
+                                symbolSize: 12,
+                                zlevel: 2, 
+                                itemStyle: {
+                                    color: statusColor, 
+                                    borderColor: '#fff',
+                                    borderWidth: 1.5,
+                                    shadowBlur: 5,
+                                    shadowColor: 'rgba(0, 0, 0, 0.2)'
+                                },
+                                emphasis: {
+                                    scale: true,
+                                    itemStyle: {
+                                        shadowBlur: 10,
+                                        shadowColor: 'rgba(0, 0, 0, 0.4)'
+                                    }
+                                }
+                            };
+                        })
+                    ]
+                };
+
+                myChart.setOption(option);
+                window.addEventListener('resize', myChart.resize);
+
+                // --- DYNAMIC RE-CALCULATION LOGIC SECTION ---
+                function updateDynamicBreakdown(legendState) {
+                    const activeCounts = {};
+                    let activeCityTotal = 0;
+
+                    neighbourhoodData.features.forEach(f => {
+                        activeCounts[f.properties.NAMES || 'Unknown Region'] = 0;
+                    });
+
+                    Object.entries(buildingGroups).forEach(([statusName, projectList]) => {
+                        const isVisible = legendState ? legendState[statusName] !== false : true;
+                        
+                        if (isVisible) {
+                            activeCityTotal += projectList.length;
+                            projectList.forEach(project => {
+                                const pt = project.value;
+                                if (!pt) return;
+
+                                const matched = neighbourhoodData.features.find(f => {
+                                    const geom = f.geometry;
+                                    if (!geom) return false;
+                                    // Target index [0] to extract the clean exterior border line coordinate array ring
+                                    if (geom.type === 'Polygon') return isPointInPolygon(pt, geom.coordinates[0]);
+                                    if (geom.type === 'MultiPolygon') return geom.coordinates.some(poly => isPointInPolygon(pt, poly[0]));
+                                    return false;
+                                });
+
+                                if (matched && matched.properties) {
+                                    const name = matched.properties.NAMES || 'Unknown Region';
+                                    activeCounts[name]++;
+                                }
+                            });
+                        }
+                    });
+
+                    window.currentActiveCounts = activeCounts;
+
+                    document.getElementById('city-wide-total').innerHTML = `
+                        <h3>City-wide Total</h3>
+                        <div class="city-total-number">${activeCityTotal} Projects</div>
+                    `;
+
+                    let breakdownHTML = `<h3>Total Building Projects</h3>`;
+                    Object.keys(activeCounts).sort().forEach(name => {
+                        breakdownHTML += `
+                            <div class="neighbourhood-row">
+                                <span style="font-weight:500;">${name}</span>
+                                <span style="color:#666; font-weight:bold;">${activeCounts[name]} projects</span>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('neighbourhood-breakdown').innerHTML = breakdownHTML;
+                }
+
+                updateDynamicBreakdown(null);
+
+                myChart.on('legendselectchanged', function (params) {
+                    updateDynamicBreakdown(params.selected);
+                });
+
+                document.getElementById('reset-zoom-btn').addEventListener('click', function() {
+                    myChart.dispatchAction({
+                        type: 'geoRoam',
+                        dx: 0,
+                        dy: 0,
+                        zoom: 1 
+                    });
+                    myChart.setOption({
+                        geo: {
+                            center: null,
+                            zoom: 1
+                        }
+                    });
+                });
+                // ---------------------------------------------
+
+            } catch (error) {
+                document.getElementById('loading').innerText = "Error: " + error.message;
+                console.error(error);
+            }
+        }
+
+        initMap();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
